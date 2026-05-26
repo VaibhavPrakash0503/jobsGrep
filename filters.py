@@ -22,21 +22,18 @@ def filter_jobs(jobs: list[dict]) -> list[dict]:
             continue
 
         # 3 — must be remote
-        # is_remote = any(
-        #     kw in location or kw in description for kw in Config.allowed_locations
-        # )
-        # if not is_remote:
-        #     continue
+        is_remote = any(
+            kw in location or kw in description for kw in Config.allowed_locations
+        )
+        if not is_remote:
+            continue
 
         # 4 — must match allowed roles
         is_valid_role = any(kw in title for kw in Config.allowed_roles)
         if not is_valid_role:
             continue
 
-        # 5 — must mention at least one tech from your stack
-        has_stack = any(kw in title or kw in description for kw in Config.allowed_stack)
-        if not has_stack:
-            continue
+        # 5 — tech stack is optional (do not filter out if missing)
 
         # 6 — must have fresher signal
         has_fresher_signal = any(

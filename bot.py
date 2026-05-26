@@ -71,7 +71,6 @@ async def search(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             return
 
         # notify
-        await update.message.reply_text(f"📬 Sending {len(new_jobs)} new jobs...")
         await notify(new_jobs)
 
         # mark seen

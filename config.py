@@ -12,20 +12,22 @@ class Config:
     # Search
     keywords = [
         "backend intern",
-        "fullstack intern",
-        "devops intern",
         "backend developer intern",
-        "fullstack developer intern",
-        "software intern python",
-        "software intern golang",
-        "software intern node",
+        "backend internship",
+        "full stack intern",
+        "fullstack intern",
+        "software developer intern",
+        "devops intern",
+        "devops engineer intern",
+        "python developer intern",
+        "node.js intern",
+        "golang intern",
         "backend fresher",
-        "devops fresher",
     ]
 
     location = "India"
-    hours_old = 13
-    results_per_site = 20
+    hours_old = 48
+    results_per_site = 50
     sites = ["indeed", "linkedin"]
 
     # Role filter — only these roles allowed
@@ -35,6 +37,7 @@ class Config:
         "fullstack",
         "full-stack",
         "devops",
+        "devops engineer",
         "software",
         "platform",
         "infrastructure",
@@ -54,15 +57,45 @@ class Config:
         "node.js",
         "nodejs",
         "typescript",
+        "django",
+        "flask",
+        "fastapi",
+        "express",
+        "nestjs",
+        "fastify",
+        "grpc",
+        "postgres",
+        "postgresql",
+        "mysql",
+        "mongodb",
         "docker",
         "kubernetes",
         "redis",
         "aws",
+        "gcp",
+        "terraform",
+        "ansible",
+        "jenkins",
+        "github actions",
+        "gitlab ci",
+        "prometheus",
+        "grafana",
+        "nginx",
+        "kafka",
         "linux",
     ]
 
-    # Location filter
-    # allowed_locations = ["remote", "work from home", "wfh"]
+    # Location filter (remote only)
+    allowed_locations = [
+        "remote",
+        "work from home",
+        "wfh",
+        "anywhere",
+        "distributed",
+        "global",
+        "home-based",
+        "home based",
+    ]
 
     # Exclude these companies (service based)
     exclude_companies = [
