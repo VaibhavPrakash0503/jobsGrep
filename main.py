@@ -11,7 +11,6 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s - %(message)s",
     handlers=[
         logging.StreamHandler(),  # terminal
-        logging.FileHandler("data/jobbot.log"),  # log file
     ],
 )
 
