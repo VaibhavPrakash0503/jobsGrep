@@ -10,21 +10,25 @@ def get_conn():
 
 
 def init_db() -> None:
-    conn = get_conn()
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS seen_jobs (
-            id TEXT PRIMARY KEY,
-            title TEXT,
-            company TEXT,
-            location TEXT,
-            url TEXT,
-            source TEXT,
-            date_posted TEXT,
-            seen_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    conn.commit()
-    logger.info("[DB] Initialized")
+    try:
+        conn = get_conn()
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS seen_jobs (
+                id TEXT PRIMARY KEY,
+                title TEXT,
+                company TEXT,
+                location TEXT,
+                url TEXT,
+                source TEXT,
+                date_posted TEXT,
+                seen_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.commit()
+        logger.info("[DB] Initialized")
+    except Exception as e:
+        logger.error(f"[DB] Failed to initialize: {e}")
+        raise
 
 
 def is_seen(job_id: str) -> bool:
