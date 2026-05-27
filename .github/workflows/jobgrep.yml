@@ -2,8 +2,9 @@ name: JobBot
 
 on:
   schedule:
-    - cron: '30 15 * * *'  # 9 PM IST (UTC+5:30)
-  workflow_dispatch:         # manual trigger from GitHub UI
+    - cron: '30 3 * * *'  # 9 AM IST
+    - cron: '30 15 * * *' # 9 PM IST
+  workflow_dispatch:         # manual trigger
 
 jobs:
   run-jobbot:
