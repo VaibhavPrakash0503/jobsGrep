@@ -20,7 +20,7 @@ jobs:
           python-version: '3.14'
 
       - name: Install dependencies
-        run: pip install python-jobspy python-telegram-bot python-dotenv libsql
+        run: pip install python-jobspy python-telegram-bot python-dotenv supabase
 
       - name: Run JobBot
         env:

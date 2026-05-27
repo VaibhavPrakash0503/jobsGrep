@@ -8,5 +8,5 @@ dependencies = [
     "python-jobspy",
     "python-telegram-bot",
     "python-dotenv",
-    "libsql",
+    "supabase",
 ]
