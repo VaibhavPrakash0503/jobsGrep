@@ -26,8 +26,8 @@ class Config:
     ]
 
     location = "India"
-    hours_old = 48
-    results_per_site = 50
+    hours_old = 13
+    results_per_site = 70
     sites = ["indeed", "linkedin"]
 
     # Role filter — only these roles allowed
@@ -140,4 +140,5 @@ class Config:
     telegram_chat_id = os.getenv("TELEGRAM_CHAT_ID")
 
     # Database
-    db_path = "data/jobs.db"
+    turso_url = os.getenv("TURSO_URL")
+    turso_token = os.getenv("TURSO_TOKEN")

@@ -1,0 +1,16 @@
+[project]
+name = "jobsGrep"
+version = "0.1.0"
+description = "Automated job search and notification bot"
+requires-python = ">=3.14"
+
+dependencies = [
+    "python-jobspy",
+    "python-telegram-bot",
+    "python-dotenv",
+    "libsql",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

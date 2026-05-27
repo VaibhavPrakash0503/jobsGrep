@@ -1,55 +1,57 @@
-import sqlite3
 import logging
-import os
+import libsql
 from config import Config
 
 logger = logging.getLogger(__name__)
 
 
+def get_conn():
+    return libsql.connect(database=Config.turso_url, auth_token=Config.turso_token)
+
+
 def init_db() -> None:
-    os.makedirs(os.path.dirname(Config.db_path), exist_ok=True)
-    with sqlite3.connect(Config.db_path) as conn:
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS seen_jobs (
-                id TEXT PRIMARY KEY,
-                title TEXT,
-                company TEXT,
-                location TEXT,
-                url TEXT,
-                source TEXT,
-                date_posted TEXT,
-                seen_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        conn.commit()
+    conn = get_conn()
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS seen_jobs (
+            id TEXT PRIMARY KEY,
+            title TEXT,
+            company TEXT,
+            location TEXT,
+            url TEXT,
+            source TEXT,
+            date_posted TEXT,
+            seen_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    conn.commit()
     logger.info("[DB] Initialized")
 
 
 def is_seen(job_id: str) -> bool:
-    with sqlite3.connect(Config.db_path) as conn:
-        cursor = conn.execute("SELECT 1 FROM seen_jobs WHERE id = ?", (job_id,))
-        return cursor.fetchone() is not None
+    conn = get_conn()
+    cursor = conn.execute("SELECT 1 FROM seen_jobs WHERE id = ?", (job_id,))
+    return cursor.fetchone() is not None
 
 
 def save_job(job: dict) -> None:
-    with sqlite3.connect(Config.db_path) as conn:
-        conn.execute(
-            """
-            INSERT OR IGNORE INTO seen_jobs 
-            (id, title, company, location, url, source, date_posted)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """,
-            (
-                job["id"],
-                job["title"],
-                job["company"],
-                job["location"],
-                job["url"],
-                job["source"],
-                job["date_posted"],
-            ),
-        )
-        conn.commit()
+    conn = get_conn()
+    conn.execute(
+        """
+        INSERT OR IGNORE INTO seen_jobs
+        (id, title, company, location, url, source, date_posted)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """,
+        (
+            job["id"],
+            job["title"],
+            job["company"],
+            job["location"],
+            job["url"],
+            job["source"],
+            job["date_posted"],
+        ),
+    )
+    conn.commit()
 
 
 def filter_unseen(jobs: list[dict]) -> list[dict]:
