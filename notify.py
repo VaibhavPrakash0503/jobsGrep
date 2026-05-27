@@ -15,14 +15,14 @@ async def _send_message(bot: Bot, message: str) -> None:
     )
 
 
-def _format_job(job: dict) -> str:
+def _format_job(index: int, job: dict) -> str:
+    reasons = ", ".join(job.get("reasons", []))
+    score = job.get("score", "?")
     return (
-        f"🆕 <b>{job['title']}</b>\n"
-        f"🏢 {job['company']}\n"
-        f"📍 {job['location']}\n"
-        f"🌐 {job['source'].capitalize()}\n"
-        f"📅 {job['date_posted']}\n"
-        f"🔗 <a href='{job['url']}'>Apply Here</a>"
+        f"{index}. <b>{job['title']}</b> — {job['company']}\n"
+        f"   📍 {job['location']} | 🌐 {job['source'].capitalize()}\n"
+        f"   ⭐ {score}pts | {reasons}\n"
+        f"   🔗 <a href='{job['url']}'>Apply Here</a>\n"
     )
 
 
@@ -33,14 +33,27 @@ async def notify(jobs: list[dict]) -> None:
 
     bot = Bot(token=Config.telegram_token)
 
-    # send header message first
-    header = f"🔍 <b>Job Hunt</b> — {len(jobs)} new internship(s) found"
+    # jobs already sorted by score descending from filter.py
+    lines = [f"🔍 <b>Job Hunt</b> — {len(jobs)} new internship(s) found\n"]
 
-    await _send_message(bot, header)
-    for job in jobs:
-        try:
-            message = _format_job(job)
-            await _send_message(bot, message)
-        except Exception as e:
-            logger.warning(f"[Notify] Failed to send job {job['id']}: {e}")
-    logger.info(f"[Notify] Sent {len(jobs)} jobs to Telegram")
+    for i, job in enumerate(jobs, start=1):
+        lines.append(_format_job(i, job))
+
+    message = "\n".join(lines)
+
+    # telegram message limit is 4096 chars
+    # split if too long
+    if len(message) <= 4096:
+        await _send_message(bot, message)
+    else:
+        # send in chunks
+        chunk = [lines[0]]  # always include header
+        for line in lines[1:]:
+            if sum(len(l) for l in chunk) + len(line) > 4096:
+                await _send_message(bot, "\n".join(chunk))
+                chunk = []
+            chunk.append(line)
+        if chunk:
+            await _send_message(bot, "\n".join(chunk))
+
+    logger.info(f"[Notify] Sent {len(jobs)} jobs in digest to Telegram")
