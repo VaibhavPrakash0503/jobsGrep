@@ -3,7 +3,7 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 from telegram.constants import ParseMode
 from config import Config
-from db import init_db, filter_unseen, mark_seen
+from db import init_db, filter_unseen, mark_seen, get_conn
 from scrapers.jobspy_scraper import scrape
 from filters import filter_jobs
 from notify import notify
@@ -13,7 +13,6 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s - %(message)s",
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler("data/jobbot.log"),
     ],
 )
 
@@ -47,7 +46,6 @@ async def search(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text("🔍 Searching for jobs, please wait...")
 
     try:
-        # scrape
         await update.message.reply_text("📡 Scraping job sites...")
         jobs = scrape()
 
@@ -55,7 +53,6 @@ async def search(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await update.message.reply_text("😕 No jobs found this run")
             return
 
-        # filter
         await update.message.reply_text(f"⚙️ Filtering {len(jobs)} jobs...")
         filtered_jobs = filter_jobs(jobs)
 
@@ -63,33 +60,27 @@ async def search(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await update.message.reply_text("😕 No jobs passed filters")
             return
 
-        # dedup
         new_jobs = filter_unseen(filtered_jobs)
 
         if not new_jobs:
             await update.message.reply_text("✅ No new jobs since last search")
             return
 
-        # notify
         await notify(new_jobs)
-
-        # mark seen
         mark_seen(new_jobs)
 
     except Exception as e:
         logger.error(f"[Bot] Search failed: {e}")
-        await update.message.reply_text(f"❌ Error: Try Again later")
+        await update.message.reply_text("❌ Error: Try again later")
 
 
 async def status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    import sqlite3
-
     try:
-        with sqlite3.connect(Config.db_path) as conn:
-            total = conn.execute("SELECT COUNT(*) FROM seen_jobs").fetchone()[0]
-            latest = conn.execute(
-                "SELECT seen_at FROM seen_jobs ORDER BY seen_at DESC LIMIT 1"
-            ).fetchone()
+        conn = get_conn()
+        total = conn.execute("SELECT COUNT(*) FROM seen_jobs").fetchone()[0]
+        latest = conn.execute(
+            "SELECT seen_at FROM seen_jobs ORDER BY seen_at DESC LIMIT 1"
+        ).fetchone()
 
         last_seen = latest[0] if latest else "Never"
         await update.message.reply_text(
@@ -103,12 +94,10 @@ async def status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def clear(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    import sqlite3
-
     try:
-        with sqlite3.connect(Config.db_path) as conn:
-            conn.execute("DELETE FROM seen_jobs")
-            conn.commit()
+        conn = get_conn()
+        conn.execute("DELETE FROM seen_jobs")
+        conn.commit()
         await update.message.reply_text(
             "🗑️ Cleared all seen jobs. Next /search will fetch fresh results."
         )
