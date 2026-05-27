@@ -6,8 +6,6 @@ logger = logging.getLogger(__name__)
 
 
 def get_conn():
-    if not Config.turso_url or not Config.turso_token:
-        raise ValueError("TURSO_URL or TURSO_TOKEN is missing")
     return libsql.connect(database=Config.turso_url, auth_token=Config.turso_token)
 
 
