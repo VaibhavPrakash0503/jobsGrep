@@ -1,61 +1,45 @@
 import logging
-import libsql
+from supabase import create_client, Client
 from config import Config
 
 logger = logging.getLogger(__name__)
 
 
-def get_conn():
-    return libsql.connect(database=Config.turso_url, auth_token=Config.turso_token)
+def get_client() -> Client:
+    if not Config.supabase_url or not Config.supabase_key:
+        raise ValueError("SUPABASE_URL or SUPABASE_KEY is missing")
+    return create_client(Config.supabase_url, Config.supabase_key)
 
 
 def init_db() -> None:
     try:
-        conn = get_conn()
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS seen_jobs (
-                id TEXT PRIMARY KEY,
-                title TEXT,
-                company TEXT,
-                location TEXT,
-                url TEXT,
-                source TEXT,
-                date_posted TEXT,
-                seen_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        conn.commit()
-        logger.info("[DB] Initialized")
+        client = get_client()
+        client.table("seen_jobs").select("id").limit(1).execute()
+        logger.info("[DB] Connected to Supabase")
     except Exception as e:
-        logger.error(f"[DB] Failed to initialize: {e}")
+        logger.error(f"[DB] Failed to connect: {e}")
         raise
 
 
 def is_seen(job_id: str) -> bool:
-    conn = get_conn()
-    cursor = conn.execute("SELECT 1 FROM seen_jobs WHERE id = ?", (job_id,))
-    return cursor.fetchone() is not None
+    client = get_client()
+    result = client.table("seen_jobs").select("id").eq("id", job_id).execute()
+    return len(result.data) > 0
 
 
 def save_job(job: dict) -> None:
-    conn = get_conn()
-    conn.execute(
-        """
-        INSERT OR IGNORE INTO seen_jobs
-        (id, title, company, location, url, source, date_posted)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    """,
-        (
-            job["id"],
-            job["title"],
-            job["company"],
-            job["location"],
-            job["url"],
-            job["source"],
-            job["date_posted"],
-        ),
-    )
-    conn.commit()
+    client = get_client()
+    client.table("seen_jobs").upsert(
+        {
+            "id": job["id"],
+            "title": job["title"],
+            "company": job["company"],
+            "location": job["location"],
+            "url": job["url"],
+            "source": job["source"],
+            "date_posted": job["date_posted"],
+        }
+    ).execute()
 
 
 def filter_unseen(jobs: list[dict]) -> list[dict]:

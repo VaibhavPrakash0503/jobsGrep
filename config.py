@@ -137,5 +137,5 @@ class Config:
     telegram_chat_id = os.getenv("TELEGRAM_CHAT_ID")
 
     # Database
-    turso_url = os.getenv("TURSO_URL")
-    turso_token = os.getenv("TURSO_TOKEN")
+    supabase_url = os.getenv("SUPABASE_URL")
+    supabase_key = os.getenv("SUPABASE_KEY")

@@ -3,7 +3,7 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 from telegram.constants import ParseMode
 from config import Config
-from db import init_db, filter_unseen, mark_seen, get_conn
+from db import init_db, filter_unseen, mark_seen, get_client
 from scrapers.jobspy_scraper import scrape
 from filters import filter_jobs
 from notify import notify
@@ -76,13 +76,10 @@ async def search(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
-        conn = get_conn()
-        total = conn.execute("SELECT COUNT(*) FROM seen_jobs").fetchone()[0]
-        latest = conn.execute(
-            "SELECT seen_at FROM seen_jobs ORDER BY seen_at DESC LIMIT 1"
-        ).fetchone()
-
-        last_seen = latest[0] if latest else "Never"
+        client = get_client()
+        result = client.table("seen_jobs").select("id, seen_at").execute()
+        total = len(result.data)
+        last_seen = result.data[-1]["seen_at"] if result.data else "Never"
         await update.message.reply_text(
             f"📊 <b>JobBot Status</b>\n\n"
             f"Total jobs seen: <b>{total}</b>\n"
@@ -95,9 +92,8 @@ async def status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def clear(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
-        conn = get_conn()
-        conn.execute("DELETE FROM seen_jobs")
-        conn.commit()
+        client = get_client()
+        client.table("seen_jobs").delete().neq("id", "").execute()
         await update.message.reply_text(
             "🗑️ Cleared all seen jobs. Next /search will fetch fresh results."
         )
