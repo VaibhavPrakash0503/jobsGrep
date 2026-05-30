@@ -7,6 +7,8 @@ from db import init_db, filter_unseen, mark_seen, get_client
 from scrapers.jobspy_scraper import scrape
 from filters import filter_jobs
 from notify import notify
+from datetime import datetime, UTC
+from zoneinfo import ZoneInfo
 
 logging.basicConfig(
     level=logging.INFO,
@@ -79,7 +81,18 @@ async def status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         client = get_client()
         result = client.table("seen_jobs").select("id, seen_at").execute()
         total = len(result.data)
-        last_seen = result.data[-1]["seen_at"] if result.data else "Never"
+
+        last_seen = result.data[-1]["seen_at"] if result.data else None
+
+        if last_seen:
+            dt = datetime.fromisoformat(last_seen)
+            dt = dt.replace(tzinfo=UTC)
+            ist = dt.astimezone(ZoneInfo("Asia/Kolkata"))
+
+            last_seen = ist.strftime("%d %b %Y, %I:%M %p IST")
+        else:
+            last_seen = "Never"
+
         await update.message.reply_text(
             f"📊 <b>JobBot Status</b>\n\n"
             f"Total jobs seen: <b>{total}</b>\n"
