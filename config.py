@@ -105,8 +105,8 @@ class Config:
         "hcl",
         "tech mahindra",
         "mphasis",
-        "Skillzenloop",
-        "Inficore Soft",
+        "skillzenloop",
+        "inficore soft",
     ]
 
     # Fresher signals
