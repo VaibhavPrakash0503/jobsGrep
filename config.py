@@ -107,6 +107,7 @@ class Config:
         "mphasis",
         "skillzenloop",
         "inficore soft",
+        "infrabyte consulting",
     ]
 
     # Fresher signals
